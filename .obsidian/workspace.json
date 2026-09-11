@@ -1,0 +1,227 @@
+{
+  "main": {
+    "id": "0dd4bc70dcb3093d",
+    "type": "split",
+    "children": [
+      {
+        "id": "82d0583aed4f24a0",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "f00239e9225dca6b",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "03-数据结构/数据结构_05_树与二叉树.md",
+                "mode": "preview",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "数据结构_05_树与二叉树"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "ee2a62309ec8f5db",
+    "type": "split",
+    "children": [
+      {
+        "id": "6eecb4120fef5002",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d58a7a7678644213",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-folder-closed",
+              "title": "文件列表"
+            }
+          },
+          {
+            "id": "48a2d0309794e4ea",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "搜索"
+            }
+          },
+          {
+            "id": "192b437499c0ef66",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-bookmark",
+              "title": "书签"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "3a0d27c0978bedbd",
+    "type": "split",
+    "children": [
+      {
+        "id": "478d262c217b4dfe",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "61aa80a844e17013",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "反向链接"
+            }
+          },
+          {
+            "id": "6069e01ddcce1aaa",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "出链"
+            }
+          },
+          {
+            "id": "f641320ab76373af",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "标签"
+            }
+          },
+          {
+            "id": "17d5720210d6671b",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "添加笔记属性"
+            }
+          },
+          {
+            "id": "20fbade7916a8f36",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "大纲"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:打开快速切换": false,
+      "graph:查看关系图谱": false,
+      "canvas:新建白板": false,
+      "daily-notes:打开/创建今天的日记": false,
+      "templates:插入模板": false,
+      "command-palette:打开命令面板": false,
+      "bases:新建数据库": false
+    }
+  },
+  "active": "f00239e9225dca6b",
+  "lastOpenFiles": [
+    "02-英语二/英语二_高频生词.md",
+    "99-信箱/2026-09-11_1741-grok.txt",
+    "99-信箱/2026-09-11_1735-grok.txt",
+    "99-信箱/2026-09-11_1734-grok.txt",
+    "01-数学二/高数/数学二_高数_03_一元函数积分学.md",
+    "99-信箱/2026-09-11_1731-grok.txt",
+    "99-信箱/2026-09-11_1730-Sebastian.txt",
+    "99-信箱/2026-09-11_1726-grok.txt",
+    "README.md",
+    "99-信箱/2026-09-11_1722-grok.txt",
+    "99-信箱/2026-09-11_1720-Sebastian.txt",
+    "99-信箱/2026-09-11_1718-grok.txt",
+    "99-信箱/2026-09-11_1714-Sebastian.txt",
+    "00-主页.md",
+    "01-数学二/高数/数学二_高数_02_一元函数微分学.md",
+    "01-数学二/高数/数学二_高数_04_多元函数微分学.md",
+    "01-数学二/高数/数学二_高数_01_函数、极限、连续.md",
+    "01-数学二/高数/数学二_高数_05_二重积分.md",
+    "03-数据结构/数据结构_08_排序.md",
+    "03-数据结构/数据结构_05_树与二叉树.md",
+    "03-数据结构/数据结构_04_串.md",
+    "03-数据结构/数据结构_03_栈、队列和数组.md",
+    "03-数据结构/数据结构_02_线性表.md",
+    "03-数据结构/数据结构_07_查找.md",
+    "07-政治/政治_02_毛中特.md",
+    "03-数据结构/数据结构_01_绪论与算法分析.md",
+    "03-数据结构/错题本-数据结构.md",
+    "_tmp_probe 1.md",
+    "_tmp_probe.md",
+    "zz_b/x.md",
+    "zz_tmp/c.md",
+    "zz_tmp/b.md",
+    "99-测试/_cli_test.md",
+    "01-数学二/错题本-数学二.md",
+    "06-计算机网络/错题本-计算机网络.md",
+    "05-操作系统/错题本-操作系统.md"
+  ]
+}
