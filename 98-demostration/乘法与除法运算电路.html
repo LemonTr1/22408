@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>乘法 / 除法运算电路 · 交互演示</title>
+<style>
+:root{
+  --bg:#f4f6f9; --panel:#fff; --ink:#1f2328; --muted:#6b7280;
+  --line:#d5dbe3; --accent:#2f6feb; --accent-soft:#eaf1ff;
+  --hl-bg:#fff6d8; --hl-line:#dd9a26; --ok:#15803d; --err:#c2410c;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#15171c; --panel:#1e2127; --ink:#e7e9ec; --muted:#98a0ab;
+    --line:#3a4048; --accent:#7aa5ff; --accent-soft:#222e47;
+    --hl-bg:#4a3a13; --hl-line:#e0b154; --ok:#5ad07f; --err:#fb923c;
+  }
+}
+*{box-sizing:border-box}
+body{
+  margin:0;background:var(--bg);color:var(--ink);
+  font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 18px 70px}
+h1{font-size:21px;margin:0 0 4px;letter-spacing:.2px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 18px}
+.tabs{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.tab{
+  border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  padding:8px 18px;border-radius:9px;font-size:14px;cursor:pointer;transition:.15s;
+}
+.tab:hover{border-color:var(--accent)}
+.tab.active{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.panel{display:none}
+.panel.active{display:block}
+.card{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:16px 18px;margin-bottom:14px;
+}
+.controls{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:12px;color:var(--muted)}
+.field input{
+  font-family:var(--mono);font-size:16px;letter-spacing:2px;
+  width:104px;padding:7px 10px;border-radius:8px;
+  border:1px solid var(--line);background:var(--bg);color:var(--ink);text-align:center;
+}
+.field input:focus{outline:none;border-color:var(--accent);background:var(--accent-soft)}
+.field input.bad{border-color:var(--err)}
+.btn{
+  border:1px solid var(--line);background:var(--panel);color:var(--ink);
+  padding:8px 15px;border-radius:9px;font-size:14px;cursor:pointer;transition:.15s;white-space:nowrap;
+}
+.btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+.btn.primary:hover:not(:disabled){color:#fff;filter:brightness(1.08)}
+.errmsg{color:var(--err);font-size:13px;min-height:20px}
+
+.layout{display:grid;grid-template-columns:1fr 330px;gap:14px;align-items:start}
+@media (max-width:880px){.layout{grid-template-columns:1fr}}
+
+/* ---------- 电路图（SVG） ---------- */
+.circuit{width:100%;height:auto;display:block}
+.circuit text{
+  font-size:12px;fill:var(--ink);font-family:inherit;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+}
+.circuit text.sm{font-size:10.5px;fill:var(--muted)}
+.circuit text.bit{font-size:17px;font-weight:600;font-family:var(--mono);fill:var(--ink)}
+.circuit .comp{fill:var(--panel);stroke:var(--line);stroke-width:1.6;transition:.18s}
+.circuit .comp.hl{fill:var(--hl-bg);stroke:var(--hl-line);stroke-width:2.6}
+.circuit .divline{stroke:var(--line);stroke-width:1.2;stroke-dasharray:4 3}
+.circuit .cell{fill:var(--bg);stroke:var(--line);stroke-width:1;transition:.18s}
+.circuit .cell.hl{fill:var(--hl-bg);stroke:var(--hl-line);stroke-width:2}
+.circuit .wgrp path{fill:none;stroke:var(--muted);stroke-width:1.8;stroke-linejoin:round}
+.circuit .wgrp polygon{fill:var(--muted);stroke:none}
+.circuit .wgrp.hl path{stroke:var(--accent);stroke-width:2.8}
+.circuit .wgrp.hl polygon{fill:var(--accent)}
+.circuit .wgrp.ctl path{stroke-dasharray:6 5}
+.figcap{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
+.legend{font-size:11.5px;color:var(--muted);text-align:center;margin:3px 0 0}
+
+/* ---------- 步骤说明 ---------- */
+.stepinfo{margin-top:4px;border-left:3px solid var(--accent);padding-left:12px;min-height:56px}
+.stepinfo h3{margin:0 0 3px;font-size:15px}
+.stepinfo p{margin:0;font-size:13.5px;color:var(--muted);font-family:var(--mono);line-height:1.7}
+.progress{font-size:12.5px;color:var(--muted);margin-left:auto}
+.stepbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:14px}
+
+/* ---------- 日志 ---------- */
+.logbox h4{margin:0 0 10px;font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.4px}
+.logbox ol{list-style:none;margin:0;padding:0;max-height:430px;overflow-y:auto}
+.logbox li{
+  font-size:12.5px;padding:6px 9px;border-radius:7px;color:var(--muted);
+  border-left:2px solid transparent;line-height:1.5;
+}
+.logbox li.active{background:var(--hl-bg);border-left-color:var(--hl-line);color:var(--ink);font-weight:600}
+.logbox li .rn{font-family:var(--mono);opacity:.7;margin-right:5px}
+.result{
+  margin-top:12px;padding:10px 13px;border-radius:9px;font-size:13.5px;
+  background:var(--accent-soft);border:1px solid var(--accent);color:var(--ink);
+}
+.result b{font-family:var(--mono);font-size:15px;color:var(--accent)}
+.hint{font-size:12px;color:var(--muted);margin-top:10px}
+kbd{
+  font-family:var(--mono);font-size:11px;border:1px solid var(--line);
+  border-bottom-width:2px;border-radius:4px;padding:1px 5px;background:var(--bg);
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>乘法 / 除法运算电路 · 交互演示</h1>
+  <p class="sub">对应王道 2027《计算机组成原理》P40 图 2.10（乘法器）、P42 图 2.12（除法器）· 无符号数 · 演示字长 n = 4 位（教材图为 32 位）</p>
+
+  <div class="tabs">
+    <button class="tab active" data-mode="mul">① 无符号数乘法运算电路</button>
+    <button class="tab" data-mode="div">② 无符号整数除法运算电路</button>
+  </div>
+
+  <!-- ======================== 乘法 ======================== -->
+  <section class="panel active" id="panel-mul">
+    <div class="card">
+      <div class="controls">
+        <div class="field"><label>被乘数 X（4 位二进制）</label><input id="m-x" maxlength="4" value="1101"></div>
+        <div class="field"><label>乘数 Y（4 位二进制）</label><input id="m-y" maxlength="4" value="1011"></div>
+        <button class="btn primary" id="m-start">开始 / 重置</button>
+        <button class="btn" id="m-rand">随机一组</button>
+      </div>
+      <div class="errmsg" id="m-err"></div>
+    </div>
+
+    <div class="card">
+      <svg class="circuit" id="svg-mul" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+        <!-- ===== 连线（含箭头） ===== -->
+        <g class="wgrp" id="m-g-xalu">
+          <path d="M700,68 H688 V100 H666"/>
+          <polygon points="660,100 672,94 672,106"/>
+        </g>
+        <g class="wgrp" id="m-g-alup">
+          <path d="M540,108 H200 V121"/>
+          <path d="M200,139 V245"/>
+          <polygon points="200,250 194,238 206,238"/>
+        </g>
+        <g class="wgrp" id="m-g-fb">
+          <path d="M100,290 H46 V130 H534"/>
+          <polygon points="540,130 528,124 528,136"/>
+        </g>
+        <g class="wgrp" id="m-g-carry">
+          <path d="M200,160 H196"/>
+          <polygon points="190,160 202,155 202,165"/>
+        </g>
+        <g class="wgrp" id="m-g-cp">
+          <path d="M125,204 V245"/>
+          <polygon points="125,250 119,238 131,238"/>
+        </g>
+        <g class="wgrp ctl" id="m-g-shift">
+          <path d="M270,391 V361"/>
+          <polygon points="270,355 264,367 276,367"/>
+        </g>
+        <g class="wgrp ctl" id="m-g-we">
+          <path d="M390,391 V361"/>
+          <polygon points="390,355 384,367 396,367"/>
+        </g>
+        <g class="wgrp" id="m-g-clk">
+          <path d="M330,518 V476"/>
+          <polygon points="330,470 324,482 336,482"/>
+        </g>
+
+        <!-- ===== ALU（32 位加法器：梯形） ===== -->
+        <polygon class="comp" id="mALU" points="660,62 660,172 540,140 540,94"/>
+        <text x="602" y="110" text-anchor="middle">ALU</text>
+        <text class="sm" x="602" y="128" text-anchor="middle">（加）</text>
+
+        <!-- ===== 被乘数寄存器 X ===== -->
+        <rect class="comp" id="mX" x="700" y="24" width="172" height="76" rx="8"/>
+        <text class="sm" x="786" y="42" text-anchor="middle">被乘数寄存器 X</text>
+        <g id="m-X-cells"></g>
+        <text class="sm" id="m-Xdec" x="786" y="118" text-anchor="middle">= 13</text>
+
+        <!-- ===== 进位触发器 C ===== -->
+        <rect class="comp" id="mC" x="60" y="138" width="130" height="66" rx="8"/>
+        <text class="sm" x="125" y="157" text-anchor="middle">进位触发器 C</text>
+        <g id="m-C-cells"></g>
+        <text class="sm" id="m-Cdec" x="66" y="224">= 0</text>
+
+        <!-- ===== 64 位寄存器：乘积寄存器 P : 乘数寄存器 Y ===== -->
+        <rect class="comp" id="mPY" x="100" y="250" width="480" height="104" rx="10"/>
+        <line class="divline" x1="340" y1="252" x2="340" y2="352"/>
+        <text class="sm" x="220" y="272" text-anchor="middle">乘积寄存器 P</text>
+        <text class="sm" x="460" y="272" text-anchor="middle">乘数寄存器 Y</text>
+        <g id="m-P-cells"></g>
+        <g id="m-Y-cells"></g>
+        <text class="sm" x="592" y="300">64位</text>
+        <text class="sm" id="m-Pdec" x="220" y="374" text-anchor="middle">= 0</text>
+        <text class="sm" id="m-Ydec" x="460" y="374" text-anchor="middle">= 11</text>
+
+        <!-- ===== 控制逻辑 + 计数器 Cn ===== -->
+        <ellipse class="comp" id="mCTRL" cx="330" cy="430" rx="160" ry="40"/>
+        <text x="330" y="424" text-anchor="middle">控制逻辑</text>
+        <text x="330" y="446" text-anchor="middle">计数器 C<tspan font-size="9" dy="2">n</tspan><tspan dy="-2"> = </tspan><tspan id="m-Cn" class="bit" font-size="15">4</tspan></text>
+
+        <!-- ===== 信号名 ===== -->
+        <text class="sm" x="262" y="378" text-anchor="end">右移</text>
+        <text class="sm" x="398" y="378">写使能</text>
+        <text class="sm" x="330" y="540" text-anchor="middle">时钟</text>
+        <text class="sm" x="384" y="98" text-anchor="middle">4位</text>
+        <text class="sm" x="430" y="101" text-anchor="middle">4位 → P</text>
+        <text class="sm" x="60" y="122">P 送入 ALU</text>
+        <text class="sm" x="206" y="152">进位</text>
+      </svg>
+      <p class="figcap">图 2.10　一个 32 位无符号数乘法运算器的逻辑结构（教材 P40，本演示字长 n = 4 位）</p>
+      <p class="legend">图例：▭ 寄存器　◺ ALU（梯形）　◯ 控制逻辑　—— 数据通路　- - - 控制信号　| X 全程不变，P、Y 作为 64 位整体右移</p>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div class="card">
+          <div class="stepinfo">
+            <h3 id="m-title">等待开始</h3>
+            <p id="m-detail">点击「开始 / 重置」后，用「下一步」逐条推进乘法迭代过程。</p>
+          </div>
+          <div class="stepbar">
+            <button class="btn" id="m-prev">◀ 上一步</button>
+            <button class="btn primary" id="m-next">下一步 ▶</button>
+            <button class="btn" id="m-auto">自动播放</button>
+            <span class="progress" id="m-prog">第 0 / 0 步</span>
+          </div>
+          <div class="result" id="m-result" style="display:none"></div>
+          <p class="hint">考点链接 · 无符号数乘法指令的溢出判断（2019、2020）：迭代结束后高 n 位（即 P）不全为 0 即溢出，等价于最后一轮加法产生了进位 C = 1。</p>
+          <p class="hint">提示：键盘 <kbd>←</kbd> <kbd>→</kbd> 可切换上一个 / 下一个标签页的步骤。</p>
+        </div>
+      </div>
+
+      <aside class="card logbox">
+        <h4>执行日志</h4>
+        <ol id="m-log"></ol>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ======================== 除法 ======================== -->
+  <section class="panel" id="panel-div">
+    <div class="card">
+      <div class="controls">
+        <div class="field"><label>被除数（4 位二进制）</label><input id="d-a" maxlength="4" value="1001"></div>
+        <div class="field"><label>除数 Y（4 位二进制）</label><input id="d-y" maxlength="4" value="0010"></div>
+        <button class="btn primary" id="d-start">开始 / 重置</button>
+        <button class="btn" id="d-rand">随机一组</button>
+      </div>
+      <div class="errmsg" id="d-err"></div>
+    </div>
+
+    <div class="card">
+      <svg class="circuit" id="svg-div" viewBox="0 0 900 560" xmlns="http://www.w3.org/2000/svg">
+        <g class="wgrp" id="d-g-yalu">
+          <path d="M700,68 H688 V100 H666"/>
+          <polygon points="660,100 672,94 672,106"/>
+        </g>
+        <g class="wgrp" id="d-g-alur">
+          <path d="M540,108 H200 V121"/>
+          <path d="M200,139 V245"/>
+          <polygon points="200,250 194,238 206,238"/>
+        </g>
+        <g class="wgrp" id="d-g-fb">
+          <path d="M100,290 H46 V130 H534"/>
+          <polygon points="540,130 528,124 528,136"/>
+        </g>
+        <g class="wgrp ctl" id="d-g-shift">
+          <path d="M270,391 V361"/>
+          <polygon points="270,355 264,367 276,367"/>
+        </g>
+        <g class="wgrp ctl" id="d-g-we">
+          <path d="M390,391 V361"/>
+          <polygon points="390,355 384,367 396,367"/>
+        </g>
+        <g class="wgrp ctl" id="d-g-sel">
+          <path d="M490,430 H620 V167"/>
+          <polygon points="620,161 614,173 626,173"/>
+        </g>
+        <g class="wgrp" id="d-g-clk">
+          <path d="M330,518 V476"/>
+          <polygon points="330,470 324,482 336,482"/>
+        </g>
+
+        <polygon class="comp" id="dALU" points="660,62 660,172 540,140 540,94"/>
+        <text x="602" y="108" text-anchor="middle">ALU</text>
+        <text class="sm" x="602" y="126" text-anchor="middle">（加/减）</text>
+
+        <rect class="comp" id="dY" x="700" y="24" width="172" height="76" rx="8"/>
+        <text class="sm" x="786" y="42" text-anchor="middle">除数寄存器 Y</text>
+        <g id="d-Y-cells"></g>
+        <text class="sm" id="d-Ydec" x="786" y="118" text-anchor="middle">= 2</text>
+
+        <rect class="comp" id="dRQ" x="100" y="250" width="480" height="104" rx="10"/>
+        <line class="divline" x1="340" y1="252" x2="340" y2="352"/>
+        <text class="sm" x="220" y="272" text-anchor="middle">余数寄存器 R</text>
+        <text class="sm" x="460" y="272" text-anchor="middle">余数/商寄存器 Q</text>
+        <g id="d-R-cells"></g>
+        <g id="d-Q-cells"></g>
+        <text class="sm" x="592" y="300">64位</text>
+        <text class="sm" id="d-Rdec" x="220" y="374" text-anchor="middle">= 0</text>
+        <text class="sm" id="d-Qdec" x="460" y="374" text-anchor="middle">= 9</text>
+
+        <ellipse class="comp" id="dCTRL" cx="330" cy="430" rx="160" ry="40"/>
+        <text x="330" y="424" text-anchor="middle">控制逻辑</text>
+        <text x="330" y="446" text-anchor="middle">计数器 C<tspan font-size="9" dy="2">n</tspan><tspan dy="-2"> = </tspan><tspan id="d-Cn" class="bit" font-size="15">4</tspan></text>
+
+        <text class="sm" x="262" y="378" text-anchor="end">左移</text>
+        <text class="sm" x="398" y="378">写使能</text>
+        <text class="sm" x="330" y="540" text-anchor="middle">时钟</text>
+        <text class="sm" x="384" y="98" text-anchor="middle">4位</text>
+        <text class="sm" x="430" y="101" text-anchor="middle">4位 → R</text>
+        <text class="sm" x="60" y="122">R 送入 ALU</text>
+        <text class="sm" x="628" y="240">加/减</text>
+      </svg>
+      <p class="figcap">图 2.12　一个 32 位除法逻辑结构图（教材 P42，本演示字长 n = 4 位）</p>
+      <p class="legend">图例：▭ 寄存器　◺ ALU（梯形）　◯ 控制逻辑　—— 数据通路　- - - 控制信号　| Y 全程不变，R、Q 作为 64 位整体左移</p>
+    </div>
+
+    <div class="layout">
+      <div>
+        <div class="card">
+          <div class="stepinfo">
+            <h3 id="d-title">等待开始</h3>
+            <p id="d-detail">点击「开始 / 重置」后，用「下一步」逐条推进除法迭代过程。</p>
+          </div>
+          <div class="stepbar">
+            <button class="btn" id="d-prev">◀ 上一步</button>
+            <button class="btn primary" id="d-next">下一步 ▶</button>
+            <button class="btn" id="d-auto">自动播放</button>
+            <span class="progress" id="d-prog">第 0 / 0 步</span>
+          </div>
+          <div class="result" id="d-result" style="display:none"></div>
+          <p class="hint">考点链接 · 除法运算器的结构（2025）。异常处理：检测到除数为 0 时触发异常并停止运算，其捕获和处理方式与中断一致。</p>
+        </div>
+      </div>
+
+      <aside class="card logbox">
+        <h4>执行日志</h4>
+        <ol id="d-log"></ol>
+      </aside>
+    </div>
+  </section>
+
+  <p class="hint" style="text-align:center;margin-top:22px">
+    单文件离线可用 · 数据通路严格按教材图 2.10 / 图 2.12 搭建
+  </p>
+</div>
+
+<script>
+'use strict';
+const N = 4, MASK = (1 << N) - 1, MASK2 = (1 << (2 * N)) - 1;
+const bin = (v, w = N) => (v >>> 0).toString(2).padStart(w, '0');
+const $ = id => document.getElementById(id);
+
+/* ================= 状态 ================= */
+const M = { steps: [], cur: 0, timer: null };
+const D = { steps: [], cur: 0, timer: null };
+
+/* ================= 电路：生成位单元 ================= */
+function mkCells(gid, x0, y, n, w, h, gap, prefix) {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    const x = x0 + i * (w + gap);
+    s += '<rect class="cell" id="' + prefix + 'r' + i + '" x="' + x + '" y="' + y +
+         '" width="' + w + '" height="' + h + '" rx="5"/>';
+    s += '<text class="bit" id="' + prefix + 'c' + i + '" x="' + (x + w / 2) +
+         '" y="' + (y + h / 2 + 6) + '" text-anchor="middle">0</text>';
+  }
+  $(gid).innerHTML = s;
+}
+mkCells('m-X-cells', 706, 56, 4, 34, 32, 8, 'm-X');
+mkCells('m-C-cells', 109, 166, 1, 32, 26, 0, 'm-C');
+mkCells('m-P-cells', 120, 286, 4, 44, 36, 8, 'm-P');
+mkCells('m-Y-cells', 360, 286, 4, 44, 36, 8, 'm-Y');
+mkCells('d-Y-cells', 706, 56, 4, 34, 32, 8, 'd-Y');
+mkCells('d-R-cells', 120, 286, 4, 44, 36, 8, 'd-R');
+mkCells('d-Q-cells', 360, 286, 4, 44, 36, 8, 'd-Q');
+
+/* ================= 步骤构建：乘法 ================= */
+function buildMul(X, Y) {
+  const S = [];
+  let x = X, y = Y, P = 0, C = 0, Cn = N, r = 0;
+
+  S.push({ phase: 'init', X: x, Y: y, P, C, Cn, title: '初始化',
+    detail: 'X ← 被乘数 ' + bin(x) + '（全程保持不变）；Y ← 乘数 ' + bin(y) + '；P ← 0；Cn ← ' + Cn });
+
+  while (Cn > 0) {
+    r++;
+    const bit = y & 1;
+    S.push({ phase: 'judge', X: x, Y: y, P, C, Cn, title: '第 ' + r + ' 轮 · ① 判断',
+      detail: '取 Y 的最低位 Y₀ = ' + bit + ' → ' + (bit ? '需要把 X 加到 P 上' : '空操作（相当于加 0）') });
+
+    const sum = P + (bit ? x : 0);
+    const nC = sum >> N, nP = sum & MASK;
+    S.push({ phase: 'add', X: x, Y: y, P: nP, C: nC, Cn, title: '第 ' + r + ' 轮 · ② 加法操作',
+      detail: bit
+        ? 'P ← P + X ： ' + bin(P) + ' + ' + bin(x) + ' = ' + bin(sum, N + 1) + '₂ = ' + sum +
+          '  →  P = ' + bin(nP) + '，进位 C = ' + nC
+        : 'P ← P + 0 = ' + bin(P) + '（不变），进位 C = 0' });
+
+    const sh = ((nC << (2 * N)) | (nP << N) | y) >>> 1;
+    const sP = (sh >> N) & MASK, sY = sh & MASK;
+    S.push({ phase: 'shift', X: x, Y: sY, P: sP, C: 0, Cn, title: '第 ' + r + ' 轮 · ③ 移位操作',
+      detail: 'C、P、Y 作为整体逻辑右移一位：（' + nC + ' ' + bin(nP) + ' ' + bin(y) + '） →  （0 ' +
+              bin(sP) + ' ' + bin(sY) + '），进位进入 P 最高位，Y 最低位被丢弃' });
+
+    Cn--;
+    S.push({ phase: 'count', X: x, Y: sY, P: sP, C: 0, Cn, title: '第 ' + r + ' 轮 · ④ 更新计数器',
+      detail: 'Cn ← Cn − 1 = ' + Cn + (Cn === 0 ? '，为 0 → 迭代结束' : '，未到 0 → 进入下一轮') });
+
+    y = sY; P = sP; C = 0;
+  }
+
+  const prod = (P << N) | y;
+  S.push({ phase: 'final', X: x, Y: y, P, C: 0, Cn: 0, final: true, title: '迭代结束 · 最终结果',
+    detail: '积 = P ‖ Y = ' + bin(P) + ' ' + bin(y) + '  =  ' + bin(prod, 2 * N) + '₂  =  ' + prod + '₁₀' +
+            '   （' + x + ' × ' + Y + ' = ' + (x * Y) + '）' });
+  return S;
+}
+
+/* ================= 步骤构建：除法 ================= */
+function buildDiv(dividend, divisor) {
+  const S = [];
+  let R = 0, Q = dividend & MASK, Y = divisor & MASK, Cn = N, r = 0;
+
+  if (Y === 0) {
+    S.push({ phase: 'final', R, Q, Y, Cn, final: true, title: '初始化 · 异常',
+      detail: '除数 = 0 → 立即触发「除零错误」异常，停止运算（由硬件捕获并经中断向量表转入异常处理程序）' });
+    return S;
+  }
+
+  S.push({ phase: 'init', R, Q, Y, Cn, title: '初始化',
+    detail: '除数寄存器 Y ← ' + bin(Y) + '（全程保持不变）；余数/商寄存器 Q ← ' + bin(dividend) +
+            '（n 位被除数）；余数寄存器 R ← 0；Cn ← ' + Cn +
+            '；2n 位被除数 = 高位补 0 ‖ 低位 = ' + bin(R) + ' ' + bin(Q) });
+
+  if (dividend < divisor) {
+    S.push({ phase: 'final', R: 0, Q, Y, Cn, final: true, title: '预检短路 · 无须执行',
+      detail: '被除数 ' + dividend + ' < 除数 ' + divisor + ' → 商 = 0、余数 = 被除数，无须进入执行过程。' +
+              '寄存器保持初值不变：' + bin(0, N) + ' ' + bin(dividend) + ' 这 2n 位整体就是余数 ' + dividend +
+              '，而 Q 尚未移出任何商位，对应商 = 0。' });
+    return S;
+  }
+
+  while (Cn > 0) {
+    r++;
+    const val = (((R << N) | Q) << 1) & MASK2;
+    const out = ((R << N) | Q) >> (2 * N - 1) & 1;
+    const nR = (val >> N) & MASK, nQ = val & MASK;
+
+    S.push({ phase: 'shift', R: nR, Q: nQ, Y, Cn, title: '第 ' + r + ' 轮 · ① 移位',
+      detail: 'R、Q 作为整体逻辑左移一位：（' + bin(R) + ' ' + bin(Q) + '） →  （' + bin(nR) + ' ' + bin(nQ) +
+              '），R 最高位 ' + out + ' 移出丢弃，Q 最低位空出以接收新商位' });
+
+    const diff = nR - Y;
+    if (diff >= 0) {
+      S.push({ phase: 'trial', R: diff, Q: nQ | 1, Y, Cn, title: '第 ' + r + ' 轮 · ② 试商与加/减法',
+        detail: '试商：R − Y = ' + bin(nR) + ' − ' + bin(Y) + ' = ' + nR + ' − ' + Y + ' = ' + diff +
+                ' ≥ 0 → 够减，该商位置 1，差值回存 R：R = ' + bin(diff) + '，Q 最低位 = 1 → Q = ' + bin(nQ | 1) });
+      R = diff; Q = nQ | 1;
+    } else {
+      S.push({ phase: 'trial', R: nR, Q: nQ, Y, Cn, title: '第 ' + r + ' 轮 · ② 试商与加/减法',
+        detail: '试商：R − Y = ' + bin(nR) + ' − ' + bin(Y) + ' = ' + nR + ' − ' + Y +
+                ' < 0 → 不够减，该商位置 0，并执行 R + Y 恢复余数：R 保持 ' + bin(nR) + '，Q = ' + bin(nQ) });
+      R = nR; Q = nQ;
+    }
+
+    Cn--;
+    S.push({ phase: 'count', R, Q, Y, Cn, title: '第 ' + r + ' 轮 · ③ 循环控制',
+      detail: 'Cn ← Cn − 1 = ' + Cn + (Cn === 0 ? '，为 0 → 迭代结束' : '，未到 0 → 进入下一轮') });
+  }
+
+  S.push({ phase: 'final', R, Q, Y, Cn: 0, final: true, title: '迭代结束 · 最终结果',
+    detail: '商 = Q = ' + bin(Q) + '₂ = ' + Q + '₁₀ ；余数 = R = ' + bin(R) + '₂ = ' + R + '₁₀' +
+            '   （' + dividend + ' ÷ ' + divisor + ' = ' + Q + ' ⋯ ' + R + '）' });
+  return S;
+}
+
+/* ================= 电路高亮 ================= */
+const MUL_EL = {
+  X: 'mX', P: 'mPY', Y: 'mPY', C: 'mC', CTRL: 'mCTRL', ALU: 'mALU',
+  WX: 'm-g-xalu', WALUP: 'm-g-alup', FB: 'm-g-fb', CARRY: 'm-g-carry',
+  CP: 'm-g-cp', SHIFT: 'm-g-shift', WE: 'm-g-we', CLK: 'm-g-clk'
+};
+const DIV_EL = {
+  Y: 'dY', R: 'dRQ', Q: 'dRQ', CTRL: 'dCTRL', ALU: 'dALU',
+  WY: 'd-g-yalu', WALUR: 'd-g-alur', FB: 'd-g-fb', SEL: 'd-g-sel',
+  SHIFT: 'd-g-shift', WE: 'd-g-we', CLK: 'd-g-clk'
+};
+const MUL_HL = {
+  init:  ['X', 'P', 'Y', 'C', 'CTRL'],
+  judge: ['Y', 'CTRL', 'SHIFT'],
+  add:   ['X', 'P', 'C', 'ALU', 'WX', 'WALUP', 'CARRY'],
+  shift: ['C', 'P', 'Y', 'CP', 'SHIFT'],
+  count: ['CTRL', 'CLK'],
+  final: ['P', 'Y']
+};
+const DIV_HL = {
+  init:  ['Y', 'R', 'Q', 'CTRL'],
+  shift: ['R', 'Q', 'SHIFT'],
+  trial: ['Y', 'R', 'ALU', 'WY', 'WALUR', 'FB', 'SEL'],
+  count: ['CTRL', 'CLK'],
+  final: ['R', 'Q']
+};
+
+function setBits(prefix, v, n) {
+  const s = bin(v, n);
+  for (let i = 0; i < n; i++) $(prefix + 'c' + i).textContent = s[i];
+}
+function hlCells(prefix, n, on) {
+  for (let i = 0; i < n; i++) $(prefix + 'r' + i).classList.toggle('hl', !!on);
+}
+function clearCircuit(ids, cellPrefixes) {
+  ids.forEach(id => { const el = $(id); if (el) el.classList.remove('hl'); });
+  cellPrefixes.forEach(p => hlCells(p.prefix, p.n, false));
+}
+
+function paintMul(s) {
+  setBits('m-X', s.X, N); setBits('m-C', s.C, 1);
+  setBits('m-P', s.P, N); setBits('m-Y', s.Y, N);
+  $('m-Cn').textContent = s.Cn;
+  $('m-Xdec').textContent = '= ' + s.X;
+  $('m-Cdec').textContent = '= ' + s.C;
+  $('m-Pdec').textContent = '= ' + s.P;
+  $('m-Ydec').textContent = '= ' + s.Y;
+
+  clearCircuit(Object.values(MUL_EL),
+    [{ prefix: 'm-X', n: 4 }, { prefix: 'm-P', n: 4 }, { prefix: 'm-Y', n: 4 }, { prefix: 'm-C', n: 1 }]);
+
+  const keys = MUL_HL[s.phase] || [];
+  keys.forEach(k => { const id = MUL_EL[k]; if (id) $(id).classList.add('hl'); });
+  hlCells('m-X', 4, keys.indexOf('X') >= 0);
+  hlCells('m-C', 1, keys.indexOf('C') >= 0);
+  hlCells('m-P', 4, keys.indexOf('P') >= 0);
+  hlCells('m-Y', 4, keys.indexOf('Y') >= 0);
+}
+
+function paintDiv(s) {
+  setBits('d-Y', s.Y, N); setBits('d-R', s.R, N); setBits('d-Q', s.Q, N);
+  $('d-Cn').textContent = s.Cn;
+  $('d-Ydec').textContent = '= ' + s.Y;
+  $('d-Rdec').textContent = '= ' + s.R;
+  $('d-Qdec').textContent = '= ' + s.Q;
+
+  clearCircuit(Object.values(DIV_EL),
+    [{ prefix: 'd-Y', n: 4 }, { prefix: 'd-R', n: 4 }, { prefix: 'd-Q', n: 4 }]);
+
+  const keys = DIV_HL[s.phase] || [];
+  keys.forEach(k => { const id = DIV_EL[k]; if (id) $(id).classList.add('hl'); });
+  hlCells('d-Y', 4, keys.indexOf('Y') >= 0);
+  hlCells('d-R', 4, keys.indexOf('R') >= 0);
+  hlCells('d-Q', 4, keys.indexOf('Q') >= 0);
+}
+
+/* ================= 渲染入口 ================= */
+function render(pane) {
+  const st = pane === 'mul' ? M : D;
+  const p = pane === 'mul' ? 'm-' : 'd-';
+  if (!st.steps.length) {
+    $(p + 'prog').textContent = '第 0 / 0 步';
+    $(p + 'title').textContent = '等待开始';
+    $(p + 'detail').textContent = pane === 'mul'
+      ? '点击「开始 / 重置」后，用「下一步」逐条推进乘法迭代过程。'
+      : '点击「开始 / 重置」后，用「下一步」逐条推进除法迭代过程。';
+    return;
+  }
+  const s = st.steps[st.cur];
+  if (pane === 'mul') paintMul(s); else paintDiv(s);
+
+  $(p + 'title').textContent = s.title;
+  $(p + 'detail').textContent = s.detail;
+  $(p + 'prog').textContent = '第 ' + st.cur + ' / ' + (st.steps.length - 1) + ' 步';
+  $(p + 'prev').disabled = st.cur === 0;
+  $(p + 'next').disabled = st.cur === st.steps.length - 1;
+
+  const res = $(p + 'result');
+  if (s.final) { res.style.display = 'block'; res.innerHTML = '<b>' + s.detail + '</b>'; }
+  else res.style.display = 'none';
+
+  const ol = $(p + 'log');
+  let h = '';
+  for (let i = 0; i <= st.cur; i++) {
+    h += '<li class="' + (i === st.cur ? 'active' : '') + '"><span class="rn">' +
+         (st.steps[i].final ? '★' : i) + '</span>' + st.steps[i].title + '</li>';
+  }
+  ol.innerHTML = h;
+  const act = ol.querySelector('li.active');
+  if (act) act.scrollIntoView({ block: 'nearest' });
+}
+
+/* ================= 交互 ================= */
+function readInput(id, errId) {
+  const el = $(id), v = el.value.trim();
+  if (!/^[01]{1,4}$/.test(v)) {
+    el.classList.add('bad');
+    $(errId).textContent = '请输入 1–4 位二进制数（只用 0 和 1），不足 4 位会自动在高位补 0。';
+    return null;
+  }
+  el.classList.remove('bad');
+  $(errId).textContent = '';
+  return parseInt(v, 2);
+}
+
+function stopAuto(pane) {
+  const st = pane === 'mul' ? M : D;
+  if (st.timer) { clearInterval(st.timer); st.timer = null; }
+  $(pane === 'mul' ? 'm-auto' : 'd-auto').textContent = '自动播放';
+}
+
+function toggleAuto(pane) {
+  const st = pane === 'mul' ? M : D;
+  const btn = $(pane === 'mul' ? 'm-auto' : 'd-auto');
+  if (st.timer) { stopAuto(pane); return; }
+  if (!st.steps.length || st.cur === st.steps.length - 1) return;
+  btn.textContent = '暂停 ‖';
+  st.timer = setInterval(() => {
+    if (st.cur >= st.steps.length - 1) { stopAuto(pane); return; }
+    st.cur++; render(pane);
+  }, 950);
+}
+
+function startMul() {
+  stopAuto('mul');
+  const x = readInput('m-x', 'm-err');
+  const y = readInput('m-y', 'm-err');
+  if (x === null || y === null) return;
+  M.steps = buildMul(x, y);
+  M.cur = 0;
+  $('m-log').innerHTML = '';
+  render('mul');
+}
+
+function startDiv() {
+  stopAuto('div');
+  const a = readInput('d-a', 'd-err');
+  const y = readInput('d-y', 'd-err');
+  if (a === null || y === null) return;
+  D.steps = buildDiv(a, y);
+  D.cur = 0;
+  $('d-log').innerHTML = '';
+  render('div');
+}
+
+function randBin() { return Math.floor(Math.random() * 16); }
+
+$('m-start').onclick = startMul;
+$('d-start').onclick = startDiv;
+$('m-rand').onclick = () => { $('m-x').value = bin(randBin()); $('m-y').value = bin(randBin()); startMul(); };
+$('d-rand').onclick = () => { $('d-a').value = bin(randBin()); $('d-y').value = bin(randBin() || 1); startDiv(); };
+$('m-next').onclick = () => { stopAuto('mul'); if (M.cur < M.steps.length - 1) { M.cur++; render('mul'); } };
+$('m-prev').onclick = () => { stopAuto('mul'); if (M.cur > 0) { M.cur--; render('mul'); } };
+$('d-next').onclick = () => { stopAuto('div'); if (D.cur < D.steps.length - 1) { D.cur++; render('div'); } };
+$('d-prev').onclick = () => { stopAuto('div'); if (D.cur > 0) { D.cur--; render('div'); } };
+$('m-auto').onclick = () => toggleAuto('mul');
+$('d-auto').onclick = () => toggleAuto('div');
+$('m-x').onkeydown = $('m-y').onkeydown = e => { if (e.key === 'Enter') startMul(); };
+$('d-a').onkeydown = $('d-y').onkeydown = e => { if (e.key === 'Enter') startDiv(); };
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    t.classList.add('active');
+    $('panel-' + t.dataset.mode).classList.add('active');
+  };
+});
+
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  const cur = document.querySelector('.panel.active').id === 'panel-mul' ? 'mul' : 'div';
+  if (e.key === 'ArrowRight') { $(cur === 'mul' ? 'm-next' : 'd-next').click(); e.preventDefault(); }
+  if (e.key === 'ArrowLeft') { $(cur === 'mul' ? 'm-prev' : 'd-prev').click(); e.preventDefault(); }
+});
+
+startMul();
+startDiv();
+render('mul');
+render('div');
+</script>
+</body>
+</html>
